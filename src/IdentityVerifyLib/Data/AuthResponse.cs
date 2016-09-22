@@ -24,7 +24,10 @@ namespace IdentityVerifyLib.Data
             result.ErrorMessage = this.ErrorMessage;
             if(!String.IsNullOrEmpty(Result))
             {
-                result.IdMatchResult = AuthResultMap.IdMatchResultDic[this.Result[0]];
+                if (AuthResultMap.IdMatchResultDic.ContainsKey(Result[0]))
+                    result.IdMatchResult = AuthResultMap.IdMatchResultDic[this.Result[0]];
+                else
+                    result.IdMatchResult = IdMatchResult.Errored;
                 result.PortraitMatchResult = AuthResultMap.PortraitMatchResultDic[this.Result[1]];
             }
             return result;

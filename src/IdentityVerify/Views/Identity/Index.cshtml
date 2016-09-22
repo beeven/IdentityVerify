@@ -4,42 +4,72 @@
 @{
 }
 
-<div class="row">
-    <form class="form-horizontal" asp-controller="Identity" asp-action="VerifyResult" method="post">
+<div class="row" style="margin-top: 20px">
+    <form class="form-horizontal" asp-controller="Identity" asp-action="VerifyResult" method="post" data-bind="submit: onFormSubmit">
         <div class="form-group">
-            <label class="control-label col-sm-2">ID</label>
-            <input class="form-control col-sm-3" type="text" name="ID" />
-        </div>
-        <div class="form-group">
-            <label class="control-label col-sm-2">Name</label>
-            <input class="form-control col-sm-3" type="text" name="FullName"/>
-        </div>
-        <div class="form-group">
-            <label class="control-lable col-sm-2" for="" >Portrait</label>
-            <div class="col-sm-10">  
-                <video id="video" width="320" height="240" autoplay></video>
-                <button id="snapButton">拍照</button>
-                <canvas id="canvas" width="320" height="240"></canvas>
+            <label class="col-sm-2 control-label" for="inputID">身份证号</label>
+            <div class="col-sm-10">
+                <input class="form-control" type="text" id="inputID" name="ID" data-bind="value: ID" />
             </div>
         </div>
-            <input type="hidden" name="Portrait" id="portrait" />
         <div class="form-group">
-            <div class="col-sm-offset-2">
-                <button class="btn btn-default" type="submit">提交</button>
+            <label class="control-label col-sm-2" for="inputFullName">姓名</label>
+            <div class="col-sm-10">
+                <input class="form-control" type="text" id="inputFullName" name="FullName" data-bind="value: FullName" />
+            </div>
+
+        </div>
+        <div class="form-group">
+            <label class="control-label col-sm-2">照片</label>
+            <label class="col-sm-2">
+                <input type="radio" name="imageType" value="upload" data-bind="checked: ImageType" />
+                上传照片
+            </label>
+            <label class="col-sm-2">
+                <input type="radio" name="imageType" value="snap" data-bind="checked:ImageType" />
+                拍照
+            </label>
+        </div>
+        <div class="form-group">
+            <div class="col-sm-4 col-sm-offset-2 col-xs-12" style="" data-bind="visible: ImageType() == 'snap'">
+
+                <video id="video" class="col-sm-12 col-xs-12" autoplay></video>
+                <div class="col-sm-12 col-xs-12">
+                    <button data-bind="click: snap" class="btn btn-success btn-block">拍照</button>
+                </div>
+
+
+            </div>
+            <div class="col-sm-4 col-sm-offset-2 col-xs-12" data-bind="visible: ImageType()=='upload'">
+                <div class="col-sm-12 col-xs-12">
+                    <button data-bind="click: uploadPortrait" class="btn btn-success btn-block">选择照片</button>
+                </div>
+                <input id="portraitFileElem" type="file" accept="image/*" name="portraitImage" style="display:none" data-bind="event:{change: fileUploaded}" />
+
+            </div>
+            <div class="col-sm-4 col-xs-12">
+                <canvas id="canvas" width="320" height="240"></canvas>
+            </div>
+
+        </div>
+
+        <input type="hidden" name="Portrait" id="portrait" data-bind="Portrait" />
+        <div class="form-group">
+            <div class="col-sm-offset-2 col-sm-10 col-md-4">
+                <button class="btn btn-default btn-block" type="submit" data-bind="click: submitForm, disable:submitting, text:submitBtnText">提交</button>
             </div>
         </div>
     </form>
-    
+
 </div>
+
 
 @section scripts {
     <script type="text/javascript">
         // Grab elements, create settings, etc.
         var video = document.getElementById('video');
-        function errBack(err)
-        {
+        function errBack(err) {
             console.log(err);
-
         }
 
         // Get access to the camera!
@@ -67,19 +97,87 @@
                 video.play();
             }, errBack);
         }
+
+
         // Elements for taking the snapshot
         var canvas = document.getElementById('canvas');
         var context = canvas.getContext('2d');
         var portrait = document.getElementById('portrait');
+        var portraitFileElem = document.getElementById('portraitFileElem');
 
-        // Trigger photo take
-        document.getElementById("snapButton").addEventListener("click", function (event) {
-            event.preventDefault();
-            event.stopPropagation();
-            context.drawImage(video, 0, 0, 320, 240);
-            portrait.value = canvas.toDataURL("image/jpeg", 0.85);
-        });
+        var fitImageOn = function (canvas, imageObj) {
+            var imageAspectRatio = imageObj.width / imageObj.height;
+            var canvasAspectRatio = canvas.width / canvas.height;
+            var renderableHeight, renderableWidth, xStart, yStart;
+
+            // If image's aspect ratio is less than canvas's we fit on height
+            // and place the image centrally along width
+            if (imageAspectRatio < canvasAspectRatio) {
+                renderableHeight = canvas.height;
+                renderableWidth = imageObj.width * (renderableHeight / imageObj.height);
+                xStart = (canvas.width - renderableWidth) / 2;
+                yStart = 0;
+            }
+
+                // If image's aspect ratio is greater than canvas's we fit on width
+                // and place the image centrally along height
+            else if (imageAspectRatio > canvasAspectRatio) {
+                renderableWidth = canvas.width
+                renderableHeight = imageObj.height * (renderableWidth / imageObj.width);
+                xStart = 0;
+                yStart = (canvas.height - renderableHeight) / 2;
+            }
+
+                // Happy path - keep aspect ratio
+            else {
+                renderableHeight = canvas.height;
+                renderableWidth = canvas.width;
+                xStart = 0;
+                yStart = 0;
+            }
+            context.drawImage(imageObj, xStart, yStart, renderableWidth, renderableHeight);
+        };
+
+
+        function IdentityVerifyView() {
+            var that = this;
+            this.ID = ko.observable();
+            this.FullName = ko.observable();
+            this.ImageType = ko.observable("snap");
+            this.Portrait = ko.observable();
+            this.submitting = ko.observable(false);
+            this.submitBtnText = ko.observable("提交");
+            this.submitForm = function (event) {
+                portrait.value = canvas.toDataURL("image/jpeg", 0.85);
+                return true;
+            }
+            this.onFormSubmit = function (event) {
+                that.submitting(!that.submitting());
+                that.submitBtnText("正在审核，大概需要20秒");
+                return true;
+            }
+            this.uploadPortrait = function (event) {
+                portraitFileElem.click();
+            }
+            this.snap = function (event) {
+                context.drawImage(video, 0, 0, 320, 240);
+                return false;
+            }
+            this.fileUploaded = function (data, event) {
+                var file = event.target.files[0];
+                console.log(file);
+                if (!/^image\//.test(file.type)) { return; }
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    var img = document.createElement("img");
+                    img.src = e.target.result;
+                    fitImageOn(canvas, img);
+                    //context.drawImage(img, 0, 0, 320, 240);
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+        ko.applyBindings(new IdentityVerifyView());
     </script>
-
 
 }
