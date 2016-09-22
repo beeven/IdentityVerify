@@ -1,0 +1,40 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@using IdentityVerify.Models
+@model IdentityResult
+@{
+}
+
+
+<div class="row">
+
+    <form action="" class="form-horizontal">
+        @if (Model.IsSuccessful)
+        {
+            <div class="form-group">
+                <label class="control-label col-sm-2" for="">身份信息对比结果</label>
+                <div class="col-sm-4">
+                    <p class="form-control-static">@Model.IdMatchResult</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="control-label col-sm-2" for="">人像对比结果</label>
+                <div class="col-sm-4">
+                    <p class="form-control-static">@Model.PortraitMatchResult</p>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="form-group">
+                <label class="control-label col-sm-2" for="">身份信息对比结果</label>
+                <div class="col-sm-4">
+                    <p class="form-control-static">失败</p>
+                </div>
+            </div>
+        }
+    </form>
+
+
+</div>

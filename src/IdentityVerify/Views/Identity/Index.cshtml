@@ -1,0 +1,85 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+
+<div class="row">
+    <form class="form-horizontal" asp-controller="Identity" asp-action="VerifyResult" method="post">
+        <div class="form-group">
+            <label class="control-label col-sm-2">ID</label>
+            <input class="form-control col-sm-3" type="text" name="ID" />
+        </div>
+        <div class="form-group">
+            <label class="control-label col-sm-2">Name</label>
+            <input class="form-control col-sm-3" type="text" name="FullName"/>
+        </div>
+        <div class="form-group">
+            <label class="control-lable col-sm-2" for="" >Portrait</label>
+            <div class="col-sm-10">  
+                <video id="video" width="320" height="240" autoplay></video>
+                <button id="snapButton">拍照</button>
+                <canvas id="canvas" width="320" height="240"></canvas>
+            </div>
+        </div>
+            <input type="hidden" name="Portrait" id="portrait" />
+        <div class="form-group">
+            <div class="col-sm-offset-2">
+                <button class="btn btn-default" type="submit">提交</button>
+            </div>
+        </div>
+    </form>
+    
+</div>
+
+@section scripts {
+    <script type="text/javascript">
+        // Grab elements, create settings, etc.
+        var video = document.getElementById('video');
+        function errBack(err)
+        {
+            console.log(err);
+
+        }
+
+        // Get access to the camera!
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            // Not adding `{ audio: true }` since we only want video now
+            navigator.mediaDevices.getUserMedia({ video: true }).then(function (stream) {
+                video.src = window.URL.createObjectURL(stream);
+                video.play();
+            });
+            console.log("here");
+        }
+        else if (navigator.getUserMedia) { // Standard
+            navigator.getUserMedia({ video: true }, function (stream) {
+                video.src = stream;
+                video.play();
+            }, errBack);
+        } else if (navigator.webkitGetUserMedia) { // WebKit-prefixed
+            navigator.webkitGetUserMedia({ video: true }, function (stream) {
+                video.src = window.webkitURL.createObjectURL(stream);
+                video.play();
+            }, errBack);
+        } else if (navigator.mozGetUserMedia) { // Mozilla-prefixed
+            navigator.mozGetUserMedia({ video: true }, function (stream) {
+                video.src = window.URL.createObjectURL(stream);
+                video.play();
+            }, errBack);
+        }
+        // Elements for taking the snapshot
+        var canvas = document.getElementById('canvas');
+        var context = canvas.getContext('2d');
+        var portrait = document.getElementById('portrait');
+
+        // Trigger photo take
+        document.getElementById("snapButton").addEventListener("click", function (event) {
+            event.preventDefault();
+            event.stopPropagation();
+            context.drawImage(video, 0, 0, 320, 240);
+            portrait.value = canvas.toDataURL("image/jpeg", 0.85);
+        });
+    </script>
+
+
+}

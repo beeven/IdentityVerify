@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using IdentityVerifyLib;
 
 namespace IdentityVerify
 {
@@ -27,6 +28,12 @@ namespace IdentityVerify
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+
+            services.AddIdentityVerifyService(options => {
+                options.ClientId = "haiguan_id";
+                options.ClientSecret = "haiguan_secret";
+                options.ServiceBaseUrl = "https://api.rz.weijing.gov.cn:8503/";
+            });
             // Add framework services.
             services.AddMvc();
         }
@@ -53,7 +60,7 @@ namespace IdentityVerify
             {
                 routes.MapRoute(
                     name: "default",
-                    template: "{controller=Home}/{action=Index}/{id?}");
+                    template: "{controller=Identity}/{action=Index}/{id?}");
             });
         }
     }
