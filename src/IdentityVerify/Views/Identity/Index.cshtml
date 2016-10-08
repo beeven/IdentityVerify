@@ -138,6 +138,40 @@
             context.drawImage(imageObj, xStart, yStart, renderableWidth, renderableHeight);
         };
 
+        var fitVideoOn = function (canvas, videoObj) {
+            var videoAspectRatio = videoObj.videoWidth / videoObj.videoHeight;
+            var canvasAspectRatio = canvas.width / canvas.height;
+            var renderableHeight, renderableWidth, xStart, yStart;
+
+            // If image's aspect ratio is less than canvas's we fit on height
+            // and place the image centrally along width
+            if (videoAspectRatio < canvasAspectRatio) {
+                renderableHeight = canvas.height;
+                renderableWidth = videoObj.videoWidth * (renderableHeight / videoObj.videoHeight);
+                xStart = (canvas.width - renderableWidth) / 2;
+                yStart = 0;
+            }
+
+                // If image's aspect ratio is greater than canvas's we fit on width
+                // and place the image centrally along height
+            else if (videoAspectRatio > canvasAspectRatio) {
+                renderableWidth = canvas.width
+                renderableHeight = videoObj.videoHeight * (renderableWidth / videoObj.videoWidth);
+                xStart = 0;
+                yStart = (canvas.height - renderableHeight) / 2;
+            }
+
+                // Happy path - keep aspect ratio
+            else {
+                renderableHeight = canvas.height;
+                renderableWidth = canvas.width;
+                xStart = 0;
+                yStart = 0;
+            }
+            context.drawImage(videoObj, xStart, yStart, renderableWidth, renderableHeight);
+
+        };
+
 
         function IdentityVerifyView() {
             var that = this;
@@ -147,8 +181,13 @@
             this.Portrait = ko.observable();
             this.submitting = ko.observable(false);
             this.submitBtnText = ko.observable("提交");
+            this.hasPortrait = false;
+
             this.submitForm = function (event) {
-                portrait.value = canvas.toDataURL("image/jpeg", 0.85);
+                if (that.hasPortrait) {
+                    portrait.value = canvas.toDataURL("image/jpeg", 0.85);
+                }
+                
                 return true;
             }
             this.onFormSubmit = function (event) {
@@ -160,7 +199,9 @@
                 portraitFileElem.click();
             }
             this.snap = function (event) {
-                context.drawImage(video, 0, 0, 320, 240);
+                fitVideoOn(canvas, video);
+                //context.drawImage(video, 0, 0, 320, 240);
+                that.hasPortrait = true;
                 return false;
             }
             this.fileUploaded = function (data, event) {
@@ -175,6 +216,12 @@
                     //context.drawImage(img, 0, 0, 320, 240);
                 }
                 reader.readAsDataURL(file);
+                if (reader.result) {
+                    var img = document.createElement("img");
+                    img.src = e.target.result;
+                    fitImageOn(canvas, img);
+                }
+                that.hasPortrait = true;
             }
         }
         ko.applyBindings(new IdentityVerifyView());
