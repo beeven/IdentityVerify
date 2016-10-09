@@ -1,8 +1,5 @@
 "use strict";
 
-function fileChanged(evt) {
-    console.log("file changed");
-}
 
 var fitImageOn = function (canvas, imageObj) {
     var imageAspectRatio = imageObj.width / imageObj.height;
@@ -123,7 +120,7 @@ function IdentityVerifyView() {
     var canvas = document.getElementById('canvas');
     var portrait = document.getElementById('portrait');
     var portraitFileElem = document.getElementById('portraitFileElem');
-
+    var result = $("#result");
 
 
 
@@ -138,9 +135,6 @@ function IdentityVerifyView() {
     this.hasPortrait = false;
 
     this.submitForm = function (event) {
-        if (that.hasPortrait) {
-            portrait.value = canvas.toDataURL("image/jpeg", 0.85);
-        }
 
         return true;
     }
@@ -158,7 +152,7 @@ function IdentityVerifyView() {
         that.hasPortrait = true;
         return false;
     }
-    this.fileUploaded = function (data, event) {
+    this.fileUploaded2 = function (data, event) {
         var file = event.target.files[0];
         console.log(file);
         if (!/^image\//.test(file.type)) { return; }
@@ -170,7 +164,6 @@ function IdentityVerifyView() {
             img.onload = function(){
                 fitImageOn(canvas, img);
             }
-            //context.drawImage(img, 0, 0, 320, 240);
         }
         reader.readAsDataURL(file);
         if (reader.result) {
@@ -179,6 +172,25 @@ function IdentityVerifyView() {
             fitImageOn(canvas, img);
         }
         that.hasPortrait = true;
+    }
+
+    this.fileUploaded = function(data, event) {
+        var file = event.target.files[0];
+        if(!file){ return;}
+        loadImage(file,function(img,data){
+            //console.log(img);
+            result.html(img);
+            //console.log(data);
+            portrait.value = img.toDataURL("image/jpeg", 0.85);
+            that.hasPortrait = true;
+        },{
+            maxWidth: result.width(),
+            canvas: true,
+            pixelRatio: window.devicePixelRatio,
+            downsamplingRatio: 0.5,
+            orientation: true,
+            //meta: true
+        });
     }
 }
 ko.applyBindings(new IdentityVerifyView());

@@ -36,3 +36,11 @@ textarea {
     display: none
   }
 }
+
+
+.result {
+    padding: 20px 0;
+    background: #fff;
+    color: #222;
+    text-align: center;
+}

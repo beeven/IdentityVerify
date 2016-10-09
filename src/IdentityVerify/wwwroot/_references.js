@@ -5,3 +5,5 @@
 /// <reference path="lib/jquery-validation/dist/jquery.validate.js" />
 /// <reference path="lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.js" />
 /// <reference path="lib/knockout/dist/knockout.js" />
+/// <reference path="lib/jquery.Jcrop.js" />
+/// <reference path="lib/load-image.all.min.js" />
